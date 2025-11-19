@@ -1,19 +1,18 @@
-
 import math
 from flask import Flask, render_template, request, jsonify
 
-app = Flask(name)
+app = Flask(__name__)
 
 # --- 1. HELPER FUNCTIONS ---
 
 def safe_eval(func_str, x):
     """Evaluates math string safely."""
-    allowed_locals = math.dict
+    allowed_locals = math.__dict__
     allowed_locals['x'] = x
     try:
-        # Replace ^ with  for user friendliness if they use caret for power
-        func_str = func_str.replace('^', '')
-        return eval(func_str, {"builtins": {}}, allowed_locals)
+        # Replace ^ with ** for user friendliness if they use caret for power
+        func_str = func_str.replace('^', '**')
+        return eval(func_str, {"__builtins__": {}}, allowed_locals)
     except Exception:
         return None
 
@@ -153,7 +152,7 @@ def solve_fixed_point(g_str, x0, tol, max_iter):
     data = []
     root = None
 
-for i in range(1, max_iter + 1):
+    for i in range(1, max_iter + 1):
         x1 = safe_eval(g_str, x0)
         if x1 is None: return {"error": "Eval error"}
         
@@ -178,6 +177,7 @@ for i in range(1, max_iter + 1):
 def solve_mod_secant(func_str, x0, delta, tol, max_iter):
     data = []
     root = None
+
     for i in range(1, max_iter + 1):
         f0 = safe_eval(func_str, x0)
         f0_delta = safe_eval(func_str, x0 + delta * x0)
@@ -258,5 +258,5 @@ def index():
     # HANDLE GET (Loading the page)
     return render_template('index.html')
 
-if name == 'main':
+if __name__ == '__main__':
     app.run(debug=True)
